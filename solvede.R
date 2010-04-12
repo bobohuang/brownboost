@@ -9,7 +9,9 @@ dot <- function (v1, v2)	{
 
 # This function removes the imaginary part from
 # the result of erf .... which is usually 0 in
-# my exerience...
+# my exerience... Also the erf is defined differently
+# in the papers ... it's 2/pi instead of 2/sqrt(pi)...
+
 erfd <- function(a) {
   return((1/pi)*as.double(erf(a)))
 }
@@ -17,6 +19,7 @@ erfd <- function(a) {
 # when the solution is found, this result should be c(0,0)
 # returns true if each function returns zero
 # v = [b, -1] and z = [a, t]
+
 boundryCondition <- function (a, b, v, z, c) {
   #print(a)
   #print(b)
@@ -80,6 +83,11 @@ solvede <- function(alpha, t, a, b, c) {
   }
 }
 
+
+# OK so here,
+# a_j == r_i(x_j)
+# b_j == h_i(x_j)y_j + s
+# .... at least I think the s is there...
 
 runSolver <- function() {
   alpha <- 0.1

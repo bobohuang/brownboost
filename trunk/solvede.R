@@ -11,7 +11,7 @@ dot <- function (v1, v2)	{
 # the result of erf .... which is usually 0 in
 # my exerience...
 erfd <- function(a) {
-  return(as.double(erf(a)))
+  return((1/pi)*as.double(erf(a)))
 }
 
 # when the solution is found, this result should be c(0,0)

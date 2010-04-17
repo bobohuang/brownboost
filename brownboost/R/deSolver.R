@@ -13,6 +13,7 @@ dotl <- function (v, l) {
 # in the papers ... it's 2/pi instead of 2/sqrt(pi)...
 
 erfd <- function(a) {
+  #print(a[1])
   return((1/pi)*as.double(erf(a)))
 }
 
@@ -21,16 +22,21 @@ erfd <- function(a) {
 # v = [b, -1] and z = [a, t]
 
 boundryCondition <- function (a, b, v, z, c) {
-  #print(a)
-  #print(b)
-  #print(v)
-  #print(z)
-  #print(c)
-  #print(erfd((a + dot(v, z))))
-  #print(erfd(a/sqrt(c)))
+  print("BOUNDRY")
+  cat("a ", a[1], "\n")
+  cat("b ", b[1], "\n")
+  cat("v ", v[[1]][1], "\n")
+  cat("z ", z, "\n")
+  cat("c ", c, "\n")
+  cat("err1 ", (erfd((a + dotl(z, v))/sqrt(c)))[1], "\n")
+  cat("err2 ", (erfd(a/sqrt(c)))[1], "\n")
             
   f1 <- sum(b * exp( -(1/c) * (a + dotl(z, v))^2))
   f2 <- sum(erfd((a + dotl(z, v))/sqrt(c)) - erfd(a/sqrt(c)))
+
+  cat("f1 ", f1, "\n")
+  cat("f2 ", f2, "\n")
+  print("END BOUNDRY")
   return(data.frame(f1=f1,f2=f2))
 }
 
@@ -68,18 +74,22 @@ solvede <- function(alpha, tee, a, b, c) {
   z <- c(alpha, tee)
   v <- list(b, -1)
   boundry <- boundryCondition(a, b, v, z, c)
-  # Check boundry condition .... quit?
-  for (i in 1:20) {
+  lastBoundry <- 10000000
+  # run until the variables stop changing...
+  while (sum(lastBoundry) - sum(boundry) != 0) {
     j <- jacobianElements(a, b, v, z, c)
     update <- updateStep(alpha, tee, c, j$W, j$U, j$B, j$V, j$E)
     alpha <- update$alpha
     tee <- update$tee
+    z_last <- z
     z <- c(alpha, tee)
     v <- list(b, -1)
+    lastBoundry <- boundry
     boundry <- boundryCondition(a, b, v, z, c)
     # Check boundry condition ... time to quit?
   }
   print(boundry)
+  print(z)
   return(c(alpha, tee))
 }
 
@@ -87,7 +97,7 @@ solvede <- function(alpha, tee, a, b, c) {
 # OK so here,
 #  a == r(x_j, y_j) + s_i :  The margin + the step s
 #  and b == h(x_i) * y_i  :  The hypothesis * the prediction
-runSolver <- function() {
+runSolverTest1 <- function() {
   alpha <- 0.0
   tee <- 0.0
   epsilon <- 0.005                              # Estimated error of data set
@@ -98,6 +108,28 @@ runSolver <- function() {
   y <- h                                        # This is the true class
   i = sample(x=seq(1, 500), replace=F, size=150)
   y[i] <- -1 * y[i]                             # Give 30% error to y(x)
+  b <- h * y                                    # agreement == 1, disagreement == -1
+  result <- solvede(alpha, tee, a, b, c)
+  print(result)
+}
+
+
+#  Test Case:  What if hypothesis and prediction match perfectly.
+#  .........
+#  a == r(x_j, y_j) + s_i :  The margin + the step s
+#  and b == h(x_i) * y_i  :  The hypothesis * the prediction
+runSolverTest2 <- function() {
+  alpha <- 0.0
+  tee <- 0.0
+  epsilon <- 0.1                               # Estimated error of data set
+  c <- (1/as.double(erfc(1-epsilon)))^2         # c defined from epsilon
+  c <- 32
+  s <- c                               # s == c at t == 0
+  a <-rep(0, times=500) + s                     # This is the margin r(x) + step
+  h <- sample(x=c(-1,1), replace=T, size=500)   # This is the hypothesis
+  y <- h                                        # This is the true class
+  i = sample(x=seq(1, 500), replace=F, size=40)
+  y[i] <- -1 * y[i]                             # Give some error to y(x)
   b <- h * y                                    # agreement == 1, disagreement == -1
   result <- solvede(alpha, tee, a, b, c)
   print(result)

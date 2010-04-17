@@ -1,0 +1,11 @@
+Package: brownboost
+Type: Package
+Title: BrownBoost algorithm originally written by Yoav Freund.
+Version: 0.1
+Date: 2010-04-17
+Author: David L Gibbs <gibbsd@ohsu.edu>
+Maintainer: David L Gibbs <gibbsd@ohsu.edu>
+Description: Brownboost was written to be used on noisy data.  more ...
+License: GPL-3
+LazyLoad: yes
+Depends: R (>= 2.1.0), NORMT3, RWeka

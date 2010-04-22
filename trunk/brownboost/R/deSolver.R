@@ -70,7 +70,11 @@ updateStep <- function(alpha, tee, c, W, U, B, V, E) {
 }
 
 
-solvede <- function(alpha, tee, a, b, c) {
+solvede <- function(r, s, h, y, c) {
+  alpha <- 0
+  tee <- 0
+  a <- r + s
+  b <- 
   z <- c(alpha, tee)
   v <- list(b, -1)
   boundry <- boundryCondition(a, b, v, z, c)

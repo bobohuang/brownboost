@@ -1,5 +1,5 @@
 library(RWeka)
-source(deSolver.R)
+source("~/School/aml/brownboost/brownboost/R/deSolver.R")
 
 # This is going to return a collection of weights and classifiers.
 

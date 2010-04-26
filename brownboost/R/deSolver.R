@@ -22,21 +22,21 @@ erfd <- function(a) {
 # v = [b, -1] and z = [a, t]
 
 boundryCondition <- function (a, b, v, z, c) {
-  print("BOUNDRY")
-  cat("a ", a[1], "\n")
-  cat("b ", b[1], "\n")
-  cat("v ", v[[1]][1], "\n")
-  cat("z ", z, "\n")
-  cat("c ", c, "\n")
-  cat("err1 ", (erfd((a + dotl(z, v))/sqrt(c)))[1], "\n")
-  cat("err2 ", (erfd(a/sqrt(c)))[1], "\n")
+  #print("BOUNDRY")
+  #cat("a ", a[1], "\n")
+  #cat("b ", b[1], "\n")
+  #cat("v ", v[[1]][1], "\n")
+  #cat("z ", z, "\n")
+  #cat("c ", c, "\n")
+  #cat("err1 ", (erfd((a + dotl(z, v))/sqrt(c)))[1], "\n")
+  #cat("err2 ", (erfd(a/sqrt(c)))[1], "\n")
             
   f1 <- sum(b * exp( -(1/c) * (a + dotl(z, v))^2))
   f2 <- sum(erfd((a + dotl(z, v))/sqrt(c)) - erfd(a/sqrt(c)))
 
-  cat("f1 ", f1, "\n")
-  cat("f2 ", f2, "\n")
-  print("END BOUNDRY")
+  #cat("f1 ", f1, "\n")
+  #cat("f2 ", f2, "\n")
+  #print("END BOUNDRY")
   return(data.frame(f1=f1,f2=f2))
 }
 
@@ -69,18 +69,23 @@ updateStep <- function(alpha, tee, c, W, U, B, V, E) {
   return(data.frame(alpha=a2, tee=t2))
 }
 
-
+#  a == r(x_j, y_j) + s_i :  The margin + the step s
+#  and b == h(x_i) * y_i  :  The hypothesis * the prediction
 solvede <- function(r, s, h, y, c) {
   alpha <- 0
   tee <- 0
   a <- r + s
-  b <- 
+  b <- h * y
   z <- c(alpha, tee)
   v <- list(b, -1)
   boundry <- boundryCondition(a, b, v, z, c)
-  lastBoundry <- 10000000
+  lastBoundry <- 0
   # run until the variables stop changing...
-  while (sum(lastBoundry) - sum(boundry) != 0) {
+  while (abs(sum(lastBoundry) - sum(boundry)) > 1e-12) {
+    #print("this boundry")
+    #print(sum(boundry))
+    #print("last boundry")
+    #print(sum(lastBoundry))
     j <- jacobianElements(a, b, v, z, c)
     update <- updateStep(alpha, tee, c, j$W, j$U, j$B, j$V, j$E)
     alpha <- update$alpha
@@ -92,8 +97,9 @@ solvede <- function(r, s, h, y, c) {
     boundry <- boundryCondition(a, b, v, z, c)
     # Check boundry condition ... time to quit?
   }
-  print(boundry)
-  print(z)
+  #print("Done with solving")
+  #print(boundry)
+  #print(z)
   return(c(alpha, tee))
 }
 

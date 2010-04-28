@@ -88,11 +88,9 @@ solvede <- function(r, s, h, y, c) {
     #print(sum(lastBoundry))
     j <- jacobianElements(a, b, v, z, c)
     update <- updateStep(alpha, tee, c, j$W, j$U, j$B, j$V, j$E)
-    alpha <- update$alpha
-    tee <- update$tee
     z_last <- z
-    z <- c(alpha, tee)
-    v <- list(b, -1)
+    z <- c(update$alpha, update$tee)
+    #v <- list(b, -1)
     lastBoundry <- boundry
     boundry <- boundryCondition(a, b, v, z, c)
     # Check boundry condition ... time to quit?

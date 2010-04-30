@@ -1,7 +1,8 @@
 source("brownboost/R/BinaryBrownBoost.R")
+library(RWeka)
+library(NORMT3)
 
-
-#multi boost!
+#multiboost!
 
 binaryDataFrame <- function (data, class) {
   data[which(data$Class != class),]$Class <- -1

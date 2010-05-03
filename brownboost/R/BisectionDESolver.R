@@ -18,12 +18,20 @@ f <- function (a, b, v, z, c) {
   return(data.frame(f1=f1,f2=f2))
 }
 
+decideOnNewPoint <- function (x1, errx1, x2, errx2, mid, errmid) {
+
+if (
+
+
+}
+
+
 
 #  a == r(x_j, y_j) + s_i :  The margin + the step s
 #  and b == h(x_i) * y_i  :  The hypothesis * the prediction
 solvede <- function(r, s, h, y, c) {
-  z1 <- c(1, 1)
-  z2 <- c(-1, -1)
+  x1 <- c(1, 1)
+  x2 <- c(-1, -1)
   a <- r + s;
   b <- h * y;
   v <- list(b, -1)
@@ -31,26 +39,18 @@ solvede <- function(r, s, h, y, c) {
   print(f(a, b, v, z1, c))
   print(f(a, b, v, z2, c))
 
-  if (f(a, b, v, z1, c)[1] < 0) {
-    lo <- z1
-    hi <- z2
-  } else {
-    lo <- z2
-    hi <- z1
-  }
-  mid <- lo + (hi-lo)/2
+  mid <- (x1+x2)/2
 
-  while (mid != lo && mid != hi) {
+  while (mid != x1 && mid != x2) {
 
-    err <- f(a, b, v, mid, c)
-    
-    if (err[1] <= 0) {
-      lo <- mid
-    } else {
-      hi <- mid
-    }
+    errx1  <- f(a, b, v, x1, c)
+    errmid <- f(a, b, v, mid, c)
+    errx2  <- f(a, b, v, x2, c)
+        
+    listOfPoints <- decideOnNewPoint(x1, errx1, x2, errx2, mid, errmid)
 
-    mid <- lo + (hi-lo)/2
+    x1 <- list[[1]];  x2 <- list[[2]];      
+    mid <- (x1+x2)/2
   }
 
   return(mid)

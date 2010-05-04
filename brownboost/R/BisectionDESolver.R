@@ -99,8 +99,8 @@ getStartingPosition <- function(a, b, v, c) {
          (signX2[1] != signX2[2]) ||
          (signX1[1] == signX2[1]) ||
          (signX1[2] == signX2[2])) {
-    x1 <- sample(seq(from=0.001, to=1, by=0.001), size=2, replace=F)
-    x2 <- sample(seq(from=-1, to=-0.199, by=0.001), size=2, replace=F)
+    x1 <- sample(seq(from=0.001, to=2, by=0.001), size=2, replace=F)
+    x2 <- sample(seq(from=-2, to=-0.199, by=0.001), size=2, replace=F)
     signX1 <- sign(f(a, b, v, x1, c))
     signX2 <- sign(f(a, b, v, x2, c))
   }
@@ -115,12 +115,12 @@ solvede <- function(r, s, h, y, c) {
   b <- h * y;
   v <- list(b, -1)
 
-  totalTries <- 0
+  solved <- 0
   loopCounter <- c
+  tries <- 0
   
-  while (totalTries < 10) {
-    print(totalTries)
-
+  while (solved == 0) {
+    print(tries)
     points <- getStartingPosition (a, b, v, c)
     x1 <- points[[1]];  x2 <- points[[2]]
   
@@ -129,7 +129,9 @@ solvede <- function(r, s, h, y, c) {
       newPoints <- decideOnNewPoint(x1, x2, a, b, v, c)
     
       if (is.null(newPoints)) {
-        if (f(a, b, v, x1, c)[1] < 1e-10) {
+        err <- f(a, b, v, x1, c) 
+        if (err[1] < 1e-10 && err[2] < 1e-10 && x1[2] > 0) {
+          cat("x1: ", x1, "err: ", f(a, b, v, x1, c), "\n")
           return(x1)
         } else {
           break
@@ -141,12 +143,13 @@ solvede <- function(r, s, h, y, c) {
       
       loopCounter <- loopCounter + 1
       x1 <- newPoints[[1]];  x2 <- newPoints[[2]];      
-#    cat("x1: ", x1, "err: ", f(a, b, v, x1, c), "\n")
-#    cat("x2: ", x2, "err: ", f(a, b, v, x2, c),"\n")
+#      cat("x1: ", x1, "err: ", f(a, b, v, x1, c), "\n")
+#      cat("x2: ", x2, "err: ", f(a, b, v, x2, c),"\n")
     }
-    totalTries <- totalTries + 1
+    tries <- tries + 1
   }
 
+  print("Out of tries!")
   return(x1)
 }
 

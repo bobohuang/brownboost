@@ -1,5 +1,5 @@
 library(RWeka)
-source("brownboost/R/DESolver.R", local=T)
+source("brownboost/R/BisectionDESolver.R", local=T)
 
 # This is going to return a collection of weights and classifiers.
 
@@ -32,7 +32,9 @@ bbBuildEnsemble <- function (trainingData, c) {
                                         # run the classifier on all the training data to get h(x)
     h <- predict(classifier, newdata=trainingData)
                                         # solve for alpha and t
+    print("about to solve de")
     alphaAndTee <- solvede(r, s, h, y, c)
+    print("done solving")
     alpha <- alphaAndTee[1]
     tee <- alphaAndTee[2]
                                         #update the margin

@@ -1,6 +1,6 @@
 
 # contains the function erf(a)
-library(NORMT3)
+#library(NORMT3)
 
 # dot product of one vector and one list
 dotl <- function (v, l) {
@@ -71,35 +71,47 @@ updateStep <- function(alpha, tee, c, W, U, B, V, E) {
   return(data.frame(alpha=a2, tee=t2))
 }
 
+
+getStartingPosition <- function(a, b, v, c) {
+  x1 <- sample(seq(from=-2, to=2, by=0.001), size=2, replace=F)
+  return(x1)
+}
+
+
+
 #  a == r(x_j, y_j) + s_i :  The margin + the step s
 #  and b == h(x_i) * y_i  :  The hypothesis * the prediction
 solvede <- function(r, s, h, y, c) {
-  alpha <- 0
-  tee <- 0
   a <- r + s
   b <- h * y
-  z <- c(alpha, tee)
+  z <- c(0, 0)
   v <- list(b, -1)
-  boundry <- boundryCondition(a, b, v, z, c)
-  lastBoundry <- 0
-  # run until the variables stop changing...
-  while (abs(sum(lastBoundry) - sum(boundry)) > 1e-11) {
-    j <- jacobianElements(a, b, v, z, c)
-    update <- updateStep(alpha, tee, c, j$W, j$U, j$B, j$V, j$E)
-    z_last <- z
-    z <- c(update$alpha, update$tee)
-    #v <- list(b, -1)
-    lastBoundry <- boundry
+  loops <- 0
+  tries <- 0
+
+  while (tries < 10) {
+    cat("try number: ", tries, "\n")
+    at <- getStartingPosition(a, b, v, c)
+    alpha <- at[1]
+    tee <- at[2]
+    z <- c(alpha,tee)
+    
     boundry <- boundryCondition(a, b, v, z, c)
-    print("last boundry")
-    print((lastBoundry))
-    print("new boundry")
-    print(boundry)
-    # Check boundry condition ... time to quit?
+    lastBoundry <- 0
+                                        # run until the variables stop changing...
+    while (abs(sum(lastBoundry) - sum(boundry)) > 1e-11) {
+      j <- jacobianElements(a, b, v, z, c)
+      update <- updateStep(alpha, tee, c, j$W, j$U, j$B, j$V, j$E)
+      z_last <- z
+      z <- c(update$alpha, update$tee)
+                                        #v <- list(b, -1)
+      lastBoundry <- boundry
+      boundry <- boundryCondition(a, b, v, z, c)
+      loops <- loops+1
+      if (loops > 200) {break}
+    }
+    tries <- tries+1
   }
-  #print("Done with solving")
-  #print(boundry)
-  #print(z)
   return(c(alpha, tee))
 }
 

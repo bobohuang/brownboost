@@ -91,6 +91,11 @@ decideOnNewPoint <- function (x1, x2, a, b, v, c) {
 
 getStartingPosition <- function(a, b, v, c) {
 
+  # how many mismatches are there?
+  percentError <- (length(which(b == -1)) / length(b)) * 100
+  alphaSampleRegion <- (-0.55/42) * percentError + 0.55
+  aSR <- alphaSampleRegion
+  loops <- 0
   x1 <- c()
   x2 <- c()
   signX1 <- c(-1, 1)
@@ -99,8 +104,16 @@ getStartingPosition <- function(a, b, v, c) {
          (signX2[1] != signX2[2]) ||
          (signX1[1] == signX2[1]) ||
          (signX1[2] == signX2[2])) {
-    x1 <- sample(seq(from=0.001, to=2, by=0.001), size=2, replace=F)
-    x2 <- sample(seq(from=-2, to=-0.199, by=0.001), size=2, replace=F)
+    if (loops < 100) {
+      x1[1] <- sample(seq(from=aSR, to=aSR+0.2, by=0.001), size=1)
+      x1[2] <- sample(seq(from=0.2, to=0.4, by=0.001), size=1)
+      x2[1] <- sample(seq(from=aSR-0.2, to=aSR, by=0.001), size=1)
+      x2[2] <- sample(seq(from=0, to=0.2, by=0.001), size=1)
+    } else {
+      x1 <- sample(seq(from=0, to=2, by=0.001), size=2)
+      x2 <- sample(seq(from=-2, to=0, by=0.001), size=2)
+    }
+    loops <- loops+1
     signX1 <- sign(f(a, b, v, x1, c))
     signX2 <- sign(f(a, b, v, x2, c))
   }
@@ -110,20 +123,19 @@ getStartingPosition <- function(a, b, v, c) {
 #  a == r(x_j, y_j) + s_i :  The margin + the step s
 #  and b == h(x_i) * y_i  :  The hypothesis * the prediction
 solvede <- function(r, s, h, y, c) {
-
+  
   a <- r + s;
   b <- h * y;
   v <- list(b, -1)
-
+  
   solved <- 0
   loopCounter <- c
   tries <- 0
   
   while (solved == 0) {
-    print(tries)
     points <- getStartingPosition (a, b, v, c)
     x1 <- points[[1]];  x2 <- points[[2]]
-  
+
     while (x2[1] != x1[1] || x2[2] != x1[2]) {
 
       newPoints <- decideOnNewPoint(x1, x2, a, b, v, c)
@@ -131,7 +143,8 @@ solvede <- function(r, s, h, y, c) {
       if (is.null(newPoints)) {
         err <- f(a, b, v, x1, c) 
         if (err[1] < 1e-10 && err[2] < 1e-10 && x1[2] > 0) {
-          cat("x1: ", x1, "err: ", f(a, b, v, x1, c), "\n")
+          #cat("x1: ", x1, "err: ", f(a, b, v, x1, c), "\n")
+          print(tries)
           return(x1)
         } else {
           break
@@ -143,8 +156,9 @@ solvede <- function(r, s, h, y, c) {
       
       loopCounter <- loopCounter + 1
       x1 <- newPoints[[1]];  x2 <- newPoints[[2]];      
-#      cat("x1: ", x1, "err: ", f(a, b, v, x1, c), "\n")
-#      cat("x2: ", x2, "err: ", f(a, b, v, x2, c),"\n")
+      #cat("loop: ", loopCounter, "\n")
+      #cat("x1: ", x1, "err: ", f(a, b, v, x1, c), "\n")
+      #cat("x2: ", x2, "err: ", f(a, b, v, x2, c),"\n")
     }
     tries <- tries + 1
   }
@@ -153,31 +167,6 @@ solvede <- function(r, s, h, y, c) {
   return(x1)
 }
 
-#  // Assumption: One of f(a) and f(b) is ≥ 0 and the other is ≤ 0
-#  if f(a) <= 0 then
-#      lo := a; hi := b
-#  else
-#      lo := b; hi := a
-#  endif
-# 
-#  mid := lo + (hi-lo)/2
-#  while (mid ≠ lo) and (mid ≠ hi) do
-#     if f(mid) ≤ 0 then
-#        lo := mid
-#     else
-#        hi := mid
-#     endif
-#     mid := lo + (hi-lo)/2
-#  endwhile
-# 
-#  return mid
-
-# OK so here,
-#  a == r(x_j, y_j) + s_i :  The margin + the step s
-#  and b == h(x_i) * y_i  :  The hypothesis * the prediction
-#  run by solvede(r, s, h, y, c)
-
-
 runSolverTest1 <- function() {
   epsilon <- 0.005                              # Estimated error of data set
   c <- 4                                        # c can be defined from epsilon
@@ -185,7 +174,7 @@ runSolverTest1 <- function() {
   r <- rep(0, times=500)                        # This is the margin r(x)
   h <- sample(x=c(-1,1), replace=T, size=500)   # This is the hypothesis
   y <- h                                        # This is the true class
-  i = sample(x=seq(1, 500), replace=F, size=250)
+  i = sample(x=seq(1, 500), replace=F, size=150)
   y[i] <- -1 * y[i]                             # Give 30% error to y(x)
   result <- solvede(r, s, h, y, c)
   print(f(r+s, h*y, list(h*y, -1), result, c))
@@ -201,8 +190,27 @@ runSolverTest2 <- function() {
   h <- sample(x=c(-1,1), replace=T, size=500)   # This is the hypothesis
   y <- h                                        # This is the true class
   i = sample(x=seq(1, 500), replace=F, size=50)
-  y[i] <- -1 * y[i]                             # Give 30% error to y(x)
+  y[i] <- -1 * y[i]                             # Give 10% error to y(x)
   result <- solvede(r, s, h, y, c)
   print(f(r+s, h*y, list(h*y, -1), result, c))
   print(result)
+}
+
+
+runSolverTestN <- function(M,N) {
+  epsilon <- 0.005                              # Estimated error of data set
+  c <- 4                                        # c can be defined from epsilon
+  s <- c                                        # step
+  r <- rep(0, times=500)                        # This is the margin r(x)
+  h <- sample(x=c(-1,1), replace=T, size=500)   # This is the hypothesis
+  listOfResults <- list()
+  for (i in seq(M, N, by=5)) {
+    
+    y <- h                                        # This is the true class
+    i = sample(x=seq(1, 500), replace=F, size=i)
+    y[i] <- -1 * y[i]                             # Give 10% error to y(x)
+    result <- solvede(r, s, h, y, c)
+    listOfResults <- append(listOfResults, result)
+  }
+  return(unlist(listOfResults))
 }

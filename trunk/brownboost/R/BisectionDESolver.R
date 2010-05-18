@@ -1,6 +1,10 @@
 
 # dot product of one vector and one list
 dotl <- function (v, l) {
+  #print("dotl")
+  #print(v[1]*l[[1]])
+  #print( v[2]*l[[2]])
+  #print(v[1]*l[[1]] + v[2]*l[[2]])
     return(v[1]*l[[1]] + v[2]*l[[2]])
 }
 
@@ -15,6 +19,41 @@ erf <- function(a) {
 f <- function (a, b, v, z, c) {
   f1 <- sum(b * exp( -(1/c) * (a + dotl(z, v))^2))
   f2 <- sum(erf((a + dotl(z, v))/sqrt(c)) - erf(a/sqrt(c)))
+  return(c(f1,f2))
+}
+
+
+
+fprint <- function (a, b, v, z, c) {
+  f1 <- sum(b * exp( -(1/c) * (a + dotl(z, v))^2))
+  print("fprint f1")
+  print("z")
+  print(z)
+  print("v")
+  print(v)
+  print(dotl(z,v))
+  print(a + dotl(z,v))
+  print( (a + dotl(z, v))^2)
+  print( -(1/c) * (a + dotl(z, v))^2)
+  print(exp( -(1/c) * (a + dotl(z, v))^2))
+  print(b * exp( -(1/c) * (a + dotl(z, v))^2))
+  print(sum(b * exp( -(1/c) * (a + dotl(z, v))^2)))
+  print("fprint f1 done....")
+
+#####################################
+  
+  f2 <- sum(erf((a + dotl(z, v))/sqrt(c)) - erf(a/sqrt(c)))
+  print(" ")
+  print("NOW f2")
+  print(sqrt(c))
+  print(a/sqrt(c))
+  print(erf(a/sqrt(c)))
+  print(dotl(z, v))
+  print(a + dotl(z, v))
+  print((a + dotl(z, v))/sqrt(c))
+  print(erf((a + dotl(z, v))/sqrt(c)))
+  print(erf((a + dotl(z, v))/sqrt(c)) - erf(a/sqrt(c)))
+  print(sum(erf((a + dotl(z, v))/sqrt(c)) - erf(a/sqrt(c))))
   return(c(f1,f2))
 }
 
@@ -114,6 +153,7 @@ getStartingPosition <- function(a, b, v, c) {
       x2 <- sample(seq(from=-2, to=0, by=0.001), size=2)
     }
     loops <- loops+1
+    print(loops)
     signX1 <- sign(f(a, b, v, x1, c))
     signX2 <- sign(f(a, b, v, x2, c))
   }
@@ -213,4 +253,27 @@ runSolverTestN <- function(M,N) {
     listOfResults <- append(listOfResults, result)
   }
   return(unlist(listOfResults))
+}
+
+
+
+functionTest1 <- function() {
+  epsilon <- 0.005                              # Estimated error of data set
+  c <- 3                                      # c can be defined from epsilon
+  s <- 3                                        # step
+  r <- rep(0.3, times=50)
+  s <- rep(0.01, times=50)                       # This is the margin r(x)
+  h <- c(1,-1,1,1,1,1,-1,1,-1,1,-1,-1,-1,1,-1,-1,-1,1,1,-1,-1,-1,-1,1,-1,-1,1,-1,1,-1,1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,1,-1,-1,-1,1,1,1,1,1)
+  y <- c(1,1,1,1,1,1,1,1,-1,1,1,-1,1,-1,-1,-1,-1,1,-1,1,1,-1,-1,1,-1,-1,1,-1,1,1,1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,1,-1,-1,1,1,1,1,1,1)
+  a <- r + s;
+  b <- h * y;
+  v <- list(b, -1)
+  z <- c(0.028331,  0.597402)
+  result <- f(a, b, v, z, c)
+  print(result)
+
+  z <- c(-0.285680, -0.319881)
+  result <- f(a, b, v, z, c)
+  print(result)
+  
 }

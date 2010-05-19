@@ -1,10 +1,13 @@
 dyn.load("brownboost/src/bisection.so")
 source("brownboost/R/BisectionDESolver.R")
+rm(.Random.seed)
 
 desolverTest1 <- function(r, s, h, y, c) {
-  result <- .C("solvede", as.double(r), as.double(s), as.double(h),
-               as.double(y), as.double(c), as.integer(length(r)), output=numeric(2))
-  return(result$output)
+  try (
+    result <- .C("solvede", as.double(r), as.double(s), as.double(h),
+                 as.double(y), as.double(c), as.integer(length(r)), output=numeric(2))
+       )
+    return(result$output)
 }
 
 #void bigfun (double* a, double* b, #
@@ -52,13 +55,12 @@ test1 <-  function() {
 # This is the main test of the de solver.
 
 test2 <- function() {
-  rm(.Random.seed)
   c <- 4                                        # c can be defined from epsilon
   s <- c                                        # step
   r <- rep(0, times=500)                        # This is the margin r(x)
   h <- sample(x=c(-1,1), replace=T, size=500)   # This is the hypothesis
   y <- h                                        # This is the true class
-  i = sample(x=seq(1, 500), replace=F, size=150)
+  i = sample(x=seq(1, 500), replace=T, size=150)
   y[i] <- -1 * y[i]                             # Give 30% error to y(x)
   result <- desolverTest1(r, s, h, y, c)
   print(result)

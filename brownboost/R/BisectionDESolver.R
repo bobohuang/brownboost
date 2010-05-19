@@ -95,7 +95,7 @@ decideOnNewPoint <- function (x1, x2, a, b, v, c) {
   c5 <- c(x2[1], x1[2])
   c6 <- c(x1[1], x2[2])
     
-  signerrx1  <- sign(f(a, b, v, x1, c))
+  signerrx1  <- sign(f(a, b, v, x1, c)) # old errors
   signerrx2  <- sign(f(a, b, v, x2, c))
   errmid <- f(a,b, v, mid, c)
   errc1 <- f(a, b, v, c1, c)

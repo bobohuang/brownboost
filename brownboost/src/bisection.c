@@ -300,17 +300,23 @@ double* decideOnNewPoint(double* pts, double* a, double* b,
 			  double* v, double* c, int n)
 {
   int i = 0;
+  double best = 1000000.0;
+  int bestindex = -1;
   int signv[2];                            // the sign of the new point set
-  double newerr[2];
   int oldsign[2];                          // sign of incoming points
   double olderror[4];
   double newpts[14];                          // set of new points
+  double newerr[14];                        // each point set has two errors...
   double* midpt1 = vpv(pts, &pts[2], 2);      // the midpoint
   double* mid    = vdc(midpt1, 2, 2);       
+
   olderror[0] = zero1(a, b, v, pts, c, n);
   olderror[1] = zero2(a, b, v, pts, c, n);
   olderror[2] = zero1(a, b, v, &pts[2], c, n);
   olderror[3] = zero2(a, b, v, &pts[2], c, n);
+  oldsign[0] = fastsign(olderror[0]);
+  oldsign[1] = fastsign(olderror[2]);
+
   newpts[0] = mid[0];  newpts[1] = mid[1];
   newpts[2] = mid[0];  newpts[3] = pts[3];
   newpts[4] = pts[2];  newpts[5] = mid[1];
@@ -318,32 +324,54 @@ double* decideOnNewPoint(double* pts, double* a, double* b,
   newpts[8] = pts[0];  newpts[9] = mid[1];
   newpts[10] = pts[2];  newpts[11] = pts[1];
   newpts[12] = pts[0];  newpts[13] = pts[3];
-                                                      // *For Sure* // 
-  bigfun(a, b, v, &newpts[i], c, oldsign, &n);  // other sign is opposite //
+
+  for (i = 0; i < 14; i += 2) {
+    newerr[i] = zero1(a, b, v, &newpts[i], c, n);
+    newerr[i+1] = zero2(a, b, v, &newpts[i], c, n);
+  }
+                                                    // *For Sure* // 
   free(midpt1);
   free(mid);
 
+  // find new point with errors closest to zero. //
   for (i = 0; i < 14; i += 2) {
-   
-    // get new signs for this point .. save in signv
-    bigfun(a, b, v, &newpts[i], c, signv, &n);
-    newerr[0] = zero1(a, b, v, &newpts[i], c, n);
-    newerr[1] = zero2(a, b, v, &newpts[i], c, n);
-    // if the signs are the same and oppposite of the old sign //
-    // then let's take it. //
-    if ((signv[0] == signv[1]) && (signv[0] != oldsign[0])
-	&& pow(newerr[0], 2) + pow(newerr[1],2) < pow(olderror[2],2) + pow(olderror[3],2)) {
-      pts[2] = newpts[i];  pts[3] = newpts[i+1];
-      return(pts);
-    // Otherwise, if they are the same, then opposite of other point //
-    } else if (signv[0] == signv[1]
-	       &&  pow(newerr[0], 2) + pow(newerr[1],2) < pow(olderror[0],2) + pow(olderror[1],2)) {
-      pts[0] = newpts[i];  pts[1] = newpts[i+1];
-      return(pts);
+    if (fastsign(newerr[i]) == fastsign(newerr[i+1]) && pow(newerr[i], 2) + pow(newerr[i+1],2) < best) {
+      best = pow(newerr[i], 2) + pow(newerr[i+1],2);
+      bestindex = i;
     }
   }
+    
+  if (bestindex == -1) {
+    printf("Couldn't find any new points!\n");
+    return NULL;
+  }
+  
+  printf("pts 1: %lf\t%lf\t%lf\t%lf\t%d\n", pts[0], pts[1], olderror[0], olderror[1], oldsign[0]);
+  printf("pts 2: %lf\t%lf\t%lf\t%lf\t%d\n", pts[2], pts[3], olderror[2], olderror[3], oldsign[1]);
+
+  for (i = 0; i < 14; i += 2) {
+    printf("newpt %lf\t%lf\t%lf\t%lf\t%d\t%d\n", newpts[i], newpts[i+1], newerr[i], newerr[i+1], fastsign(newerr[i]), fastsign(newerr[i+1]));
+  }
+  printf("best: %d\n", bestindex);
+
+  
+    // if the signs are the same and oppposite of the old sign //
+    // then let's take it. //
+  if (fastsign(newerr[bestindex]) != oldsign[0]) {
+    pts[2] = newpts[bestindex];  pts[3] = newpts[bestindex+1];
+    printf("replaced point set 2\n");
+    //exit(1);
+    return(pts);
+    // Otherwise, if they are the same, then opposite of other point //
+  } else if (fastsign(newerr[bestindex]) != oldsign[2]) {
+    pts[0] = newpts[bestindex];  pts[1] = newpts[bestindex+1];
+    printf("replaced point set 1\n");
+    //exit(1);
+    return(pts);
+  }
+  
   printf("Couldn't find any new points!\n");
-  exit(1);
+  //exit(1);
   return NULL;
 }
 
@@ -363,6 +391,8 @@ void solvede(double* r, double* s,
   int tries = 0;
   int loops = 0;
   double* points = NULL;
+  double newpoints[4];
+  newpoints[0] = 0;  newpoints[1] = 0;  newpoints[2] = 1;  newpoints[3] = 1;
 
   while (tries < 100) {
 
@@ -370,7 +400,23 @@ void solvede(double* r, double* s,
     points = getNewPoints (a, b, v1, c, *n); // needs to be freed.
 
     while (loops < 111) {
+      // find the next set of points //
       points = decideOnNewPoint(points, a, b, v1, c, *n);
+
+      // If there was no better set of points //
+      if (points == NULL) {
+	// Then see what we had last time //
+	if (fabs(newpoints[0] - newpoints[2]) < 0.0000000001
+	    && fabs(newpoints[1] - newpoints[3]) < 0.0000000001) {
+	  output[0] = newpoints[0];
+	  output[1] = newpoints[1];
+	  printf("points: %lf\t%lf\t%lf\t%lf\n", newpoints[0], newpoints[1], newpoints[2], newpoints[3]);
+	  printf("zero1: %lf\n", zero1(a, b, v1, output, c, *n));
+	  printf("zero2: %lf\n", zero2(a, b, v1, output, c, *n));
+	  return;
+	}
+	break;
+      }
 
       // Are the new points sufficently close to the previous? //
       if (fabs(points[0] - points[2]) < 0.0000000001
@@ -382,7 +428,9 @@ void solvede(double* r, double* s,
 	printf("zero2: %lf\n", zero2(a, b, v1, output, c, *n));
 	return;
       }
-
+      // save the last set of points.;
+      newpoints[0] = points[0]; newpoints[1] = points[1];
+      newpoints[2] = points[2]; newpoints[3] = points[3];
       loops += 1;
     }
 

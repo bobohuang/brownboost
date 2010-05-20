@@ -10,3 +10,11 @@ runBinaryBrownBoost <- function (trainingData, testData, c) {
   print(bbConfusionMatrix(results, testData$Class))
 
 }
+
+
+randomBinaryBrownBoost <- function (data, c) {
+  
+  trainDex <- sample(1:551, replace=F, size=500)
+  testDex <- which(1:569 %in% trainDex == FALSE)
+  runBinaryBrownBoost(data[trainDex,], data[testDex,], c)
+}

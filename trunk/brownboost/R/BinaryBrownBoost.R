@@ -1,5 +1,5 @@
 library(RWeka)
-source("brownboost/R/BisectionDESolver.R", local=T)
+source("brownboost/R/SolverWrapper.R", local=T)
 
 # This is going to return a collection of weights and classifiers.
 
@@ -9,7 +9,7 @@ source("brownboost/R/BisectionDESolver.R", local=T)
 # v > 0 is a small constant used to avoid degenerate cases .. not used..
 
 bbBuildEnsemble <- function (trainingData, c) {
-
+  print("building binary ensemble")
   rows <- length(trainingData[,1])      # number of examples in the data
   y    <- trainingData[,"Class"]        # the true class
   browns <- list()                      # list of classifiers
@@ -32,16 +32,14 @@ bbBuildEnsemble <- function (trainingData, c) {
                                         # run the classifier on all the training data to get h(x)
     h <- predict(classifier, newdata=trainingData)
                                         # solve for alpha and t
-    print("about to solve de")
     alphaAndTee <- solvede(r, s, h, y, c)
-    print("done solving")
     alpha <- alphaAndTee[1]
     tee <- alphaAndTee[2]
                                         #update the margin
     r <- r + alpha * h * y
                                         #update the time remaining
     s <- s - tee
-    print(s)
+    #print(s)
                                         #store the classifier and alpha for the ensemble
     alphas[[index]] <- alpha
     browns[[index]] <- classifier
@@ -116,3 +114,4 @@ convertToRIndex <- function(x) {
     return(0)
   }
 }
+

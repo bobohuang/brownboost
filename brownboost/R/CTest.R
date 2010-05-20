@@ -60,7 +60,8 @@ test2 <- function() {
   r <- rep(0, times=500)                        # This is the margin r(x)
   h <- sample(x=c(-1,1), replace=T, size=500)   # This is the hypothesis
   y <- h                                        # This is the true class
-  i = sample(x=seq(1, 500), replace=T, size=150)
+  sampsize <- sample(1:500, replace=F, size=1)
+  i = sample(x=seq(1, 500), replace=T, size=sampsize)
   y[i] <- -1 * y[i]                             # Give 30% error to y(x)
   result <- desolverTest1(r, s, h, y, c)
   print(result)

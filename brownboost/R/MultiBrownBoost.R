@@ -27,15 +27,24 @@ bbBuildMultiEnsemble <- function (trainingData, c) {
 
 
 bbRunMultiEnsemble <- function (testData, multiEnsemble) {
-  allClasses <- unique(trainingData$Class)      # classes in data
+  allClasses <- unique(testData$Class)      # classes in data
   resultFrame <- data.frame()
   for (class in allClasses) {
     className <- as.character(class)
-    d <- binaryDataFrame(trainingData, class)
+    d <- binaryDataFrame(testData, class)
     ensemble <- multiEnsemble[[as.character(className)]]
-    resultFrame <- cbind(resultFrame, className=runBinaryEnsemble(ensemble, d))
+    results  <- bbRunEnsemble(ensemble, d)
+    cat("\n\nFor class: ", class, "\n")
+    cat("Number of Stumps used: ", length(ensemble[[1]]), "\n")
+    cat("Accuracy: ", bbAccuracy(results, d$Class), "\n")
+    print("Confusion Matrix - rows are true classes, cols are predictions")
+    print(bbConfusionMatrix(results, d$Class))
   }
   return(resultFrame)
 }
 
 
+runMultiBrownBoost <- function (trainingData, testData, c) {  
+  multiensemble <- bbBuildMultiEnsemble(trainingData, c)
+  bbRunEnsemble(testData, multiensemble)
+}

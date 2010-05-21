@@ -380,7 +380,7 @@ void solvede(double* r, double* s,
   newpoints[0] = 0;  newpoints[1] = 0;  newpoints[2] = 1;  newpoints[3] = 1;
 
   while (tries < 1000) {
-
+    printf(".");
     // get starting points //
     points = getNewPoints (a, b, v1, c, *n); // needs to be freed.
 
@@ -419,7 +419,6 @@ void solvede(double* r, double* s,
 
     free(points);
     loops = 0;
-    printf(".");
     tries += 1;
   }
 

@@ -89,7 +89,7 @@ solvede <- function(r, s, h, y, c) {
   loops <- 0
   tries <- 0
 
-  while (tries < 10) {
+  while (tries < 40) {
     cat("try number: ", tries, "\n")
     at <- getStartingPosition(a, b, v, c)
     alpha <- at[1]
@@ -97,7 +97,10 @@ solvede <- function(r, s, h, y, c) {
     z <- c(alpha,tee)
     
     boundry <- boundryCondition(a, b, v, z, c)
-    lastBoundry <- 0
+    lastBoundry <- c(0,0)
+    print(z)
+    print(boundry)
+
                                         # run until the variables stop changing...
     while (abs(sum(lastBoundry) - sum(boundry)) > 1e-11) {
       j <- jacobianElements(a, b, v, z, c)
@@ -109,6 +112,11 @@ solvede <- function(r, s, h, y, c) {
       boundry <- boundryCondition(a, b, v, z, c)
       loops <- loops+1
       if (loops > 200) {break}
+      if(abs(sum(lastBoundry) - sum(boundry)) < 1e-11) {
+        print("done")
+        print(boundry)
+        return(z)
+      }
     }
     tries <- tries+1
   }

@@ -26,16 +26,11 @@ bbBuildEnsemble <- function (trainingData, c) {
                                         # each example gets a positive weight
     weights <- exp(-(r + s)^2 / c)
     sampProb <- weights / sum(weights)
-    print(sampProb)
                                         # sample from the data to train the classifier
     sampledData <- sample(seq(1, rows), replace=T, prob=sampProb, size=0.25*rows)
     classifier <- DecisionStump(Class ~ ., data=trainingData, subset=sampledData)
                                         # run the classifier on all the training data to get h(x)
     h <- predict(classifier, newdata=trainingData)
-    print("h")
-    print(h)
-    print("y")
-    print(trainingData$Class[sampledData])
                                         # solve for alpha and t
     alphaAndTee <- solvede(r, s, h, y, c)
     alpha <- alphaAndTee[1]
@@ -91,9 +86,12 @@ bbRunEnsemble <- function (ensemble, data) {
 
 bbConfusionMatrix <- function (results, classes) {
 
+  print(results)
+  print(classes)
+  
   confMatrix <- matrix(data=c(0,0,0,0), nrow=2)
 
-  for (i in seq(1,length(classes))) {
+  for (i in 1:length(classes)) {
     c <- convertToRIndex(results[i])
     r <- convertToRIndex(classes[i])
     confMatrix[r,c] <- confMatrix[r,c] + 1

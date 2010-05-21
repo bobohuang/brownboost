@@ -12,9 +12,16 @@ runBinaryBrownBoost <- function (trainingData, testData, c) {
 }
 
 
-randomBinaryBrownBoost <- function (data, c) {
-  
-  trainDex <- sample(1:551, replace=F, size=500)
-  testDex <- which(1:569 %in% trainDex == FALSE)
+randomBinaryBrownBoost <- function (data, c, v=NULL) {
+  # v is the sample to sample from
+  if(is.null(v)) {
+    print("creating sample vector")
+    v <- 1:length(data[,1])
+  }
+  sampleSize <- 0.75 * length(v)
+  trainDex <- sample(v, replace=F, size=sampleSize)
+  print(trainDex)
+  testDex <- which(!v %in% trainDex)
+  print(testDex)
   runBinaryBrownBoost(data[trainDex,], data[testDex,], c)
 }

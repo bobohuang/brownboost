@@ -9,7 +9,7 @@ source("brownboost/R/SolverWrapper.R", local=T)
 # v > 0 is a small constant used to avoid degenerate cases .. not used..
 
 bbBuildEnsemble <- function (trainingData, c) {
-  print("building binary ensemble")
+  #print("building binary ensemble")
   rows <- length(trainingData[,1])      # number of examples in the data
   y    <- trainingData$Class            # the true class
   browns <- list()                      # list of classifiers
@@ -39,7 +39,7 @@ bbBuildEnsemble <- function (trainingData, c) {
     r <- r + alpha * h * y
                                         #update the time remaining
     s <- s - tee
-    print(s)
+    #print(s)
                                         #store the classifier and alpha for the ensemble
     alphas[[index]] <- alpha
     browns[[index]] <- classifier
@@ -70,7 +70,6 @@ bbRunEnsemble <- function (ensemble, data) {
   results <- rep(0, length(data$Class))
                                         # list of predictions, as a vector, for each classifier
   xs <- lapply(browns, function(x) predict(x, newdata=data))
-
                                         # multiply the alpha to each classifier ..
   ys <- lapply(1:length(alphas), function(i, x, y) x[[i]] * y[[i]],
                x = xs, y = alphas)
@@ -79,7 +78,7 @@ bbRunEnsemble <- function (ensemble, data) {
     results <- results + y
   }
 
-  return( sign(results) )
+  return(results)
 }
 
   

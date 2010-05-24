@@ -3,6 +3,7 @@ library(RWeka)
 
 #multiboost!
 
+
 binaryDataFrame <- function (data, class) {
   data[which(data$Class != class),]$Class <- -1
   data[which(data$Class == class),]$Class <- 1
@@ -10,41 +11,44 @@ binaryDataFrame <- function (data, class) {
 }
 
 
-
 bbBuildMultiEnsemble <- function (trainingData, c) {
   allClasses <- unique(trainingData$Class)      # classes in data 
-  multiEnsemble <- list()                       # list of ensembles
-
+  multiEnsemble <- list()                       # list of ensembles, named by class
   for (class in allClasses) {
     cat("Working on class: ", class, "\n")
     className <- as.character(class)
     d <- binaryDataFrame(trainingData, class)
     multiEnsemble[[className]] <- bbBuildEnsemble(d, c)
   }
-
   return (multiEnsemble)
 }
 
 
-bbRunMultiEnsemble <- function (testData, multiEnsemble) {
-  allClasses <- unique(testData$Class)      # classes in data
-  resultFrame <- data.frame()
-  for (class in allClasses) {
-    className <- as.character(class)
-    d <- binaryDataFrame(testData, class)
-    ensemble <- multiEnsemble[[as.character(className)]]
-    results  <- bbRunEnsemble(ensemble, d)
-    cat("\n\nFor class: ", class, "\n")
-    cat("Number of Stumps used: ", length(ensemble[[1]]), "\n")
-    cat("Accuracy: ", bbAccuracy(results, d$Class), "\n")
-    print("Confusion Matrix - rows are true classes, cols are predictions")
-    print(bbConfusionMatrix(results, d$Class))
+bbMultiResult <- function (example, multiEnsemble) {
+  results <- c()
+  for (classifier in multiEnsemble) {
+    results <- c(results, bbRunEnsemble(classifier, example))
   }
-  return(resultFrame)
+  bestResult = which(max(results)) # index of the maximum
+  return(bestResult)
 }
 
 
-runMultiBrownBoost <- function (trainingData, testData, c) {  
-  multiensemble <- bbBuildMultiEnsemble(trainingData, c)
-  bbRunEnsemble(testData, multiensemble)
+bbLeaveOneOut <- function (data, c) {
+  resultVector <- c()                              # prediction for each example .. the one left out
+  for (example in data) {
+    rownum <- which(example$Name == data$Name)     # check this works ...
+    newdata <- data[-rownum, ]
+    example <- data[rownum,]
+    multiEnsemble <- bbBuildMultiEnsemble(newdata, c)
+    bestResult <- bbMultiResult(example, multiEnsemble)  # index to ensemble
+    resultVector <- c(resultVector, bestResult)
+    cat(example$Class, "\t", names(multiEnsemble[[bestResult]]), "\n")
+  }
+  return(resultVector)
 }
+
+
+
+
+

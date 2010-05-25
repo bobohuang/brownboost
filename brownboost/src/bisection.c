@@ -272,6 +272,7 @@ double* getNewPoints (double* a, double* b,
 		      double* v, double* c, int n)
 {
   GetRNGstate();
+  int loops = 0;
   double* result = malloc(4 * sizeof(double));
   int* signx1 = malloc(2 * sizeof(int));  
   int* signx2 = malloc(2 * sizeof(int));  
@@ -283,11 +284,29 @@ double* getNewPoints (double* a, double* b,
 	  || signx1[1] == signx2[1]
 	  || signx1[0] != signx1[1]
 	  || signx2[0] != signx2[1])) {
-    x1[0] = unif_rand() * 2;  x1[1] = unif_rand() * 2;
-    x2[0] = -unif_rand() * 2;  x2[1] = -unif_rand() * 2;
+    if (loops < 1000) {
+      x1[0] = unif_rand() * 2;  x1[1] = unif_rand() * 2;
+      x2[0] = unif_rand() * -2;  x2[1] = unif_rand() * -2;
+    } else if (loops >= 1000 && loops < 4000) {
+      x1[0] = unif_rand() * 4;  x1[1] = unif_rand() * 4;
+      x2[0] = -unif_rand() * 4;  x2[1] = -unif_rand() * 4;
+    } else if (loops >= 4000 && loops < 7000) {
+      x1[0] = unif_rand() * 4;  x1[1] = unif_rand() * 4;
+      x2[0] = unif_rand() * 4;  x2[1] = unif_rand() * 4;
+    } else if (loops >= 7000 && loops < 1000000) {
+      x1[0] = unif_rand() * 10;  x1[1] = unif_rand() * 10;
+      x2[0] = unif_rand() * -10;  x2[1] = unif_rand() * -10;
+    } else {
+      printf("Can't find any good points!\n");
+      result[0] = -9977553311; result[1] = -1133557799;
+      return(result);
+    }
+    loops += 1;
     bigfun(a, b, v, x1, c, signx1, &n);
     bigfun(a, b, v, x2, c, signx2, &n);
+    //printf(".");
   }
+  //printf("\n");
   free(signx1);
   free(signx2);
   result[0] = x1[0]; result[1] = x1[1]; result[2] = x2[0]; result[3] = x2[1];
@@ -383,6 +402,13 @@ void solvede(double* r, double* s,
     //printf(".");
     // get starting points //
     points = getNewPoints (a, b, v1, c, *n); // needs to be freed.
+    if (points[0] == -9977553311 && points[1] == -1133557799) {
+      // failure ... try again with different sample.
+      output[0] = 0;
+      output[1] = 0;
+      printf("No Solution Found!\n");
+      return;
+    }
 
     while (loops < 90) {
       // find the next set of points //
@@ -393,7 +419,7 @@ void solvede(double* r, double* s,
 	// Then see what we had last time //
 	if (fabs(newpoints[0] - newpoints[2]) < 0.0000000001
 	    && fabs(newpoints[1] - newpoints[3]) < 0.0000000001
-	    && newpoints[1] > 0) {
+	    && newpoints[1] >= 0 && newpoints[0] >= 0) {
 	  output[0] = newpoints[0];
 	  output[1] = newpoints[1];
 	  //printf("\n");
@@ -405,7 +431,7 @@ void solvede(double* r, double* s,
       // Are the new points sufficently close to the previous? //
       if (fabs(points[0] - points[2]) < 0.0000000001
 	  && fabs(points[1] - points[3]) < 0.0000000001
-	  && newpoints[1] > 0) {
+	  && newpoints[1] >= 0 && newpoints[0] >= 0) {
 	output[0] = points[0];
 	output[1] = points[1];
 	//printf("\n");
@@ -423,13 +449,13 @@ void solvede(double* r, double* s,
   }
 
   // Set the output. //
-  output[0] = -1;
-  output[1] = -1;
+  output[0] = 0;
+  output[1] = 0;
 
   free(a);
   free(b);
   free(v1);
-  exit(1);
+  printf("No Solution Found!\n");
   return;
 }
 

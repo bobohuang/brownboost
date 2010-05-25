@@ -29,17 +29,21 @@ bbMultiResult <- function (example, multiEnsemble) {
   for (classifier in multiEnsemble) {
     results <- c(results, bbRunEnsemble(classifier, example))
   }
-  bestResult = which(max(results)) # index of the maximum
+  print("EXAMPLE")
+  print(example$Class)
+  print(results)
+  print(names(multiEnsemble)[which(max(results) == results)])
+  bestResult = names(multiEnsemble)[which(max(results) == results)]
+                                        # index of the maximum
   return(bestResult)
 }
 
 
-bbLeaveOneOut <- function (data, c) {
+bbMultiLeaveOneOut <- function (data, c) {
   resultVector <- c()                              # prediction for each example .. the one left out
-  for (example in data) {
-    rownum <- which(example$Name == data$Name)     # check this works ...
-    newdata <- data[-rownum, ]
-    example <- data[rownum,]
+  for (i in 1:nrow(data)) {
+    example <- data[i,]
+    newdata <- data[-i, ]
     multiEnsemble <- bbBuildMultiEnsemble(newdata, c)
     bestResult <- bbMultiResult(example, multiEnsemble)  # index to ensemble
     resultVector <- c(resultVector, bestResult)
@@ -48,7 +52,15 @@ bbLeaveOneOut <- function (data, c) {
   return(resultVector)
 }
 
-
+bbMultiTestSet <- function (trainset, testset, c) {
+  results <- c()
+  multiEnsemble <- bbBuildMultiEnsemble(trainset, c)
+  print(names(multiEnsemble))
+  for (i in 1:nrow(testset)) {
+    results <- c(results, bbMultiResult(testset[i,], multiEnsemble))
+  }
+  return(results)
+}
 
 
 

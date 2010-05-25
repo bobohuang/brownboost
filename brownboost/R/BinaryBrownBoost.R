@@ -10,6 +10,7 @@ source("brownboost/R/SolverWrapper.R", local=T)
 
 bbBuildEnsemble <- function (trainingData, c) {
   #print("building binary ensemble")
+  
   rows <- length(trainingData[,1])      # number of examples in the data
   y    <- trainingData$Class            # the true class
   browns <- list()                      # list of classifiers
@@ -70,10 +71,10 @@ bbRunEnsemble <- function (ensemble, data) {
   results <- rep(0, length(data$Class))
                                         # list of predictions, as a vector, for each classifier
   xs <- lapply(browns, function(x) predict(x, newdata=data))
-                                        # multiply the alpha to each classifier ..
+                                        # multiply the alpha to each classifier result..
   ys <- lapply(1:length(alphas), function(i, x, y) x[[i]] * y[[i]],
                x = xs, y = alphas)
-                                          # sum across vectors to get the prediction for each example
+                                        # sum across vectors to get the prediction for each example
   for (y in ys) {
     results <- results + y
   }
@@ -94,7 +95,7 @@ bbConfusionMatrix <- function (results, classes) {
     c <- convertToRIndex(results[i])
     r <- convertToRIndex(classes[i])
     confMatrix[r,c] <- confMatrix[r,c] + 1
-  }
+    }
 
   return(confMatrix)
 }

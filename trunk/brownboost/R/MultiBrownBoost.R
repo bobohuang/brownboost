@@ -31,8 +31,8 @@ bbMultiResult <- function (example, multiEnsemble) {
   }
   print("EXAMPLE")
   print(example$Class)
-  print(results)
   print(names(multiEnsemble)[which(max(results) == results)])
+  print(results)
   bestResult = names(multiEnsemble)[which(max(results) == results)]
                                         # index of the maximum
   return(bestResult)

@@ -15,7 +15,7 @@ bbBuildMultiEnsemble <- function (trainingData, c) {
   allClasses <- unique(trainingData$Class)      # classes in data 
   multiEnsemble <- list()                       # list of ensembles, named by class
   for (class in allClasses) {
-    cat("Working on class: ", class, "\n")
+    #cat("Working on class: ", class, "\n")
     className <- as.character(class)
     d <- binaryDataFrame(trainingData, class)
     multiEnsemble[[className]] <- bbBuildEnsemble(d, c)
@@ -24,18 +24,13 @@ bbBuildMultiEnsemble <- function (trainingData, c) {
 }
 
 
-bbMultiResult <- function (example, multiEnsemble) {
-  results <- c()
-  for (classifier in multiEnsemble) {
-    results <- c(results, bbRunEnsemble(classifier, example))
+bbMultiResult <- function (exampleSet, multiEnsemble) {
+  results <- data.frame(rows=1:length(exampleSet[,1]))
+  cs <- length(multiEnsemble)
+  for (c in 1:cs) {
+    results <- cbind(results, class=(bbRunEnsemble(multiEnsemble[[c]], exampleSet)))
   }
-  print("EXAMPLE")
-  print(example$Class)
-  print(names(multiEnsemble)[which(max(results) == results)])
-  print(results)
-  bestResult = names(multiEnsemble)[which(max(results) == results)]
-                                        # index of the maximum
-  return(bestResult)
+  return(results[,-1])
 }
 
 
@@ -45,22 +40,39 @@ bbMultiLeaveOneOut <- function (data, c) {
     example <- data[i,]
     newdata <- data[-i, ]
     multiEnsemble <- bbBuildMultiEnsemble(newdata, c)
-    bestResult <- bbMultiResult(example, multiEnsemble)  # index to ensemble
-    resultVector <- c(resultVector, bestResult)
-    cat(example$Class, "\t", names(multiEnsemble[[bestResult]]), "\n")
+    results <- bbMultiResult(example, multiEnsemble)
+    bestResults <- apply(X=results, FUN=max, MARGIN=1)
+    classIndex <- sapply(1:length(bestResults),
+                         function(i, x, y) which(x[i] == y[i,]),
+                         x = bestResults, y = results)
+    classNames <- names(multiEnsemble)[classIndex]
+    cat(example$Class, "\t", classNames, "\n")
+    resultVector <- c(resultVector, classNames[1])
   }
   return(resultVector)
 }
 
-bbMultiTestSet <- function (trainset, testset, c) {
-  results <- c()
-  multiEnsemble <- bbBuildMultiEnsemble(trainset, c)
-  print(names(multiEnsemble))
-  for (i in 1:nrow(testset)) {
-    results <- c(results, bbMultiResult(testset[i,], multiEnsemble))
+bbTreeCount <- function(multiEnsemble) {
+  numTrees <- c()
+  for (m in multiEnsemble) {
+    numTrees <- c(numTrees, length(m[[1]]))
   }
-  return(results)
+  return(numTrees)
 }
 
+bbMultiRun <- function (trainset, testset, c) {
+  multiEnsemble <- bbBuildMultiEnsemble(trainset, c)
+  numTrees <- bbTreeCount(multiEnsemble)
+  results <- bbMultiResult(testset, multiEnsemble)
+  bestResults <- apply(X=results, FUN=max, MARGIN=1)
+  classIndex <- sapply(1:length(bestResults),
+                      function(i, x, y) which(x[i] == y[i,]),
+                      x = bestResults, y = results)
+  classNames <- names(multiEnsemble)[classIndex]
+  cat("Trees used: ", numTrees, "\n")
+  cat("True Class: ", testset$Class, "\n")
+  cat("Pred Class: ", classNames, "\n")
+  return(as.numeric(classNames))
+}
 
 

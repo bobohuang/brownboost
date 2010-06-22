@@ -12,7 +12,6 @@ bbBuildEnsemble <- function (trainingData, c) {
   #print("building binary ensemble")
   
   rows <- length(trainingData[,1])      # number of examples in the data
-  tdata <- trainingData[,- which(names(trainingData) == "Class")] # remove the class column!
   y    <- trainingData$Class            # the true class
   browns <- list()                      # list of classifiers
   length(browns) <- 100                 # start with space for 100 elements...
@@ -28,14 +27,13 @@ bbBuildEnsemble <- function (trainingData, c) {
                                         # each example gets a positive weight
     weights <- exp(-(r + s)^2 / c)
     sampProb <- weights / sum(weights)
-
                                         # sample from the data to train the classifier
-    sampledData <- sample(seq(1, rows), replace=T, prob=sampProb, size=0.25*rows)
+    sampledData <- sample(seq(1, rows), replace=T, prob=sampProb, size=rows)
 
-    classifier <- DecisionStump(Class ~ ., data=tdata, subset=sampledData)
+    classifier <- DecisionStump(Class ~ ., data=trainingData, subset=sampledData)
 
                                         # run the classifier on all the training data to get h(x)
-    h <- predict(classifier, newdata=tdata)
+    h <- predict(classifier, newdata=trainingData)
 
                                         # solve for alpha and t
     alphaAndTee <- solvede(r, s, h, y, c)
@@ -43,9 +41,9 @@ bbBuildEnsemble <- function (trainingData, c) {
     tee <- alphaAndTee[2]
                                         #update the margin
     r <- r + alpha * h * y
+    print(r)
                                         #update the time remaining
     s <- s - tee
-    #print(s)
                                         #store the classifier and alpha for the ensemble
     alphas[[index]] <- alpha
     browns[[index]] <- classifier

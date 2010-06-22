@@ -398,14 +398,14 @@ void solvede(double* r, double* s,
   double newpoints[4];
   newpoints[0] = 0;  newpoints[1] = 0;  newpoints[2] = 1;  newpoints[3] = 1;
 
-  while (tries < 1000) {
+  while (tries < 10) {
     //printf(".");
     // get starting points //
     points = getNewPoints (a, b, v1, c, *n); // needs to be freed.
     if (points[0] == -9977553311 && points[1] == -1133557799) {
       // failure ... try again with different sample.
-      output[0] = 0;
-      output[1] = 0;
+      output[0] = -1;
+      output[1] = -1;
       printf("No Solution Found!\n");
       return;
     }
@@ -449,8 +449,8 @@ void solvede(double* r, double* s,
   }
 
   // Set the output. //
-  output[0] = 0;
-  output[1] = 0;
+  output[0] = -1;
+  output[1] = -1;
 
   free(a);
   free(b);

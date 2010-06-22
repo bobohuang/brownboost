@@ -8,7 +8,7 @@ dotl <- function (v, l) {
     return(v[1]*l[[1]] + v[2]*l[[2]])
 }
 
-erf <- function(a) {
+myerf <- function(a) {
   return(2*pnorm(a*sqrt(2)) - 1)
 }
 
@@ -18,7 +18,7 @@ erf <- function(a) {
 
 f <- function (a, b, v, z, c) {
   f1 <- sum(b * exp( -(1/c) * (a + dotl(z, v))^2))
-  f2 <- sum(erf((a + dotl(z, v))/sqrt(c)) - erf(a/sqrt(c)))
+  f2 <- sum(myerf((a + dotl(z, v))/sqrt(c)) - myerf(a/sqrt(c)))
   return(c(f1,f2))
 }
 
@@ -276,4 +276,79 @@ functionTest1 <- function() {
   result <- f(a, b, v, z, c)
   print(result)
   
+}
+
+
+fPlotter <- function () {
+  c <- 3                                      # c can be defined from epsilon
+  s <- 3                                        # step
+  r <- rep(0.3, times=50)
+  s <- rep(0.01, times=50)                       # This is the margin r(x)
+  h <- c(1,-1,1,1,1,1,-1,1,-1,1,-1,-1,-1,1,-1,-1,-1,1,1,-1,
+         -1,-1,-1,1,-1,-1,1,-1,1,-1,1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,1,-1,-1,-1,1,1,1,1,1)
+  y <- c(1,1,1,1,1,1,1,1,-1,1,1,-1,1,-1,-1,-1,-1,1,
+         -1,1,1,-1,-1,1,-1,-1,1,-1,1,1,1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,1,-1,-1,1,1,1,1,1,1)
+  a <- r + s;
+  b <- h * y;
+  v <- list(b, -1)
+  fout1 <- c()
+  fout2 <- c()
+  
+  for (i in seq(from=-10, to=10, by=0.1)) {
+    for (j in seq(from=-10, to=10, by=0.1)) {
+      z <- c(i, j)
+      fout <- f(a, b, v, z, c)
+      fout1 <- c(fout1, fout[1])
+      fout2 <- c(fout2, fout[2])
+    }
+  }
+
+  plot(x=fout1, y=fout2, type='l', main="Solutions to the brownboost function pair for \ninputs of (x, x) where x is between -10 and 10.", xlab = "  f1 <- sum(b * exp( -(1/c) * (a + dotl(z, v))^2)) ", ylab = "f2 <- sum(myerf((a + dotl(z, v))/sqrt(c)) - myerf(a/sqrt(c))) )")
+}
+
+
+fPlotter2 <- function () {
+  c <- 4                                        # c can be defined from epsilon
+  s <- c                                        # step
+  r <- rep(0, times=500)                        # This is the margin r(x)
+  h <- sample(x=c(-1,1), replace=T, size=500)   # This is the hypothesis
+  y <- h                                        # This is the true class
+  #i = sample(x=seq(1, 500), replace=F, size=100)
+  #y[i] <- -1 * y[i]
+
+  a <- r + s;
+  b <- h * y;
+  v <- list(b, -1)
+  fout1 <- c()
+  fout2 <- c()
+  
+  for (i in seq(from=-10, to=10, by=0.1)) {
+    for (j in seq(from=-10, to=10, by=0.1)) {
+      z <- c(i, j)
+      fout <- f(a, b, v, z, c)
+      fout1 <- c(fout1, fout[1])
+      fout2 <- c(fout2, fout[2])
+      
+    }
+  }
+
+  plot(x=fout1, y=fout2, type='l', main="Solutions to the brownboost function pair for \ninputs of (x, x) where x is between -10 and 10.", xlab = "  f1 <- sum(b * exp( -(1/c) * (a + dotl(z, v))^2)) ", ylab = "f2 <- sum(myerf((a + dotl(z, v))/sqrt(c)) - myerf(a/sqrt(c))) )")
+}
+
+
+createDataSet <- function() {
+  exampleNum <- sample(seq(0, 1000, 1), 1)
+  errorSize <- sample(seq(0.001, 0.5, 0.01), 1)
+  c <- sample(seq(0.01, 10, by=0.01), 1) 
+  s <- sample(seq(0.01, c, by=0.01), 1)                     # step
+  r <- rep(0, times=exampleNum)                        # This is the margin r(x)
+  h <- sample(x=c(-1,1), replace=T, size=exampleNum)   # This is the hypothesis
+  y <- h                                        # This is the true class
+  i = sample(x=seq(1, exampleNum), replace=F, size=exampleNum * errorSize)
+  y[i] <- -1 * y[i]
+  a <- r + s;
+  b <- h * y;
+  v <- list(b, -1)
+  result <- solvede(r, s, h, y, c)
+  return(result)
 }

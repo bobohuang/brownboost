@@ -11,7 +11,7 @@ runBinaryBrownBoost <- function (trainingData, testData, c) {
   results  <- bbRunEnsemble(ensemble, testData)
   # in this case we need the sign of the results
   results <- sign(results)
-  #cat("Number of Stumps used: ", length(ensemble[[1]]), "\n")
+  #rcat("Number of Stumps used: ", length(ensemble[[1]]), "\n")
   #cat("Accuracy: ", bbAccuracy(results, testData$Class), "\n")
   #print("Confusion Matrix - rows are true classes, cols are predictions")
   #print(bbConfusionMatrix(results, testData$Class))
